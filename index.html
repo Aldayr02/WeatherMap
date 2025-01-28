@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pronóstico del Tiempo con Dirección</title>
+    <style>
+      #map {
+        height: 100vh;
+      }
+      .weather-info {
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+      .weather-info img {
+        display: block;
+        margin: 0 auto 10px; 
+        width: 100px;
+        height: auto;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      let map;
+      const apiKey = ''; // Pon tu OpenWeatherMap API Key
+      const googleMapsApiKey = ''; // Pon tu Google Maps API Key
+
+      // Initialize Google Map
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: { lat: 20, lng: 0 },
+          zoom: 2,
+        });
+
+        // Add click event listener
+        map.addListener('click', async (e) => {
+          const lat = e.latLng.lat();
+          const lng = e.latLng.lng();
+
+          // Fetchear con la API the openweather
+          const weatherResponse = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric&lang=es`
+          );
+          const weatherData = await weatherResponse.json();
+
+          // Usar la API de google maps para tomar coordenadas 
+          const geocodeResponse = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${googleMapsApiKey}`
+          );
+          const geocodeData = await geocodeResponse.json();
+
+          const address =
+            geocodeData.results && geocodeData.results[0]
+              ? geocodeData.results[0].formatted_address
+              : 'Dirección no disponible';
+
+          // Para que se vea bonito el asunto
+          tempe = '';
+
+          if (weatherData.main.temp <=  5) tempe = 'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMnVxamtnZ3N2Mmw4Y2pmbmtzcG9yNmV5ODl5cnQ1dml3bmRsMDVxNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/wQw7RrjkiFU21x3AbK/giphy.gif';
+          else if (weatherData.main.temp <= 25 ) tempe = 'https://media1.giphy.com/media/QWvra259h4LCvdJnxP/giphy.gif?cid=6c09b952dh4tz8qynp08fdot3l6zv7clt5wogmvxuvqv78sa&ep=v1_stickers_search&rid=giphy.gif&ct=e';
+          else tempe = 'https://i.pinimg.com/originals/43/10/c3/4310c3790026cb99dd55d2ad9024f8b9.gif';
+
+          //Display de la informacion
+          const weatherInfo = `
+          <div class="weather-info">
+            <img src="${tempe}" alt="Weather GIF" />
+            <h4>${weatherData.name || 'Ubicación Desconocida'}</h4>
+            <p><strong>Clima:</strong> ${weatherData.weather[0].description}</p>
+            <p><strong>Temperatura:</strong> ${weatherData.main.temp}°C</p>
+            <p><strong>Humedad:</strong> ${weatherData.main.humidity}%</p>
+            <p><strong>Viento:</strong> ${weatherData.wind.speed} m/s</p>
+            <p><strong>Dirección:</strong> ${address}</p>
+          </div>
+        `;
+
+          const infoWindow = new google.maps.InfoWindow({
+            content: weatherInfo,
+            position: { lat, lng },
+          });
+
+          infoWindow.open(map);
+
+          // Log coordinates and address to console
+          console.log('Coordenadas:', { lat, lng });
+          console.log('Dirección:', address);
+        });
+      }
+    </script>
+
+    <script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
+        //Aqui tambien se debe poner la API KEY de google maps despues del key= y antes del &callback
+    </script>
+  </body>
+</html>
